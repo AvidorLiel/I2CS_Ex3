@@ -1,125 +1,164 @@
 
+
+import java.awt.*;
+
+import java.util.Arrays;
+
 import exe.ex3.game.Game;
 import exe.ex3.game.GhostCL;
 import exe.ex3.game.PacManAlgo;
 import exe.ex3.game.PacmanGame;
 
-import java.awt.*;
-
-import java.util.*;
-import java.awt.Color;
-
-// וודאי שהחבילה (package) רשומה כאן אם הקובץ נמצא בתיקייה מסוימת
-// package exe.ex3;
-
 /**
- * Ex3Algo - Smart Pacman navigation logic.
- * This implementation avoids ghosts and targets food using BFS.
+ * This is the major algorithmic class for Ex3 - the PacMan game:
+ * <p>
+ * This code is a very simple example (random-walk algorithm).
+ * Your task is to implement (here) your PacMan algorithm.
  */
-public class Ex3Algo implements PacmanAlgo {
-    private Map2D _map;
+public class Ex3Algo implements PacManAlgo {
+    private int _count;
+
+    public Ex3Algo() {
+        _count = 0;
+    }
 
     @Override
+    /**
+     *  Add a short description for the algorithm as a String.
+     */
     public String getInfo() {
-        return "Custom BFS Navigator - Optimized for Safety and Speed";
-    }
-
-    @Override
-    public int getDirection(GameInfo game) {
-        if (game == null || game.getPacman() == null) return -1;
-
-        this._map = game.getMap();
-        Pixel2D currentPos = game.getPacman().getLocation();
-
-        // Dynamic ghost avoidance list
-        List<Ghost> ghosts = game.getGhosts();
-
-        // Find the next best step
-        Pixel2D nextStep = findOptimalPath(game, currentPos, ghosts);
-
-        if (nextStep == null) {
-            // If no path to food is safe, try to just move away from nearest ghost
-            return escapeLogic(currentPos, ghosts);
-        }
-
-        return calculateDirection(currentPos, nextStep);
-    }
-
-    private Pixel2D findOptimalPath(GameInfo game, Pixel2D start, List<Ghost> ghosts) {
-        Queue<Pixel2D> queue = new LinkedList<>();
-        Map<Pixel2D, Pixel2D> parentMap = new HashMap<>();
-        Set<Pixel2D> visited = new HashSet<>();
-
-        queue.add(start);
-        visited.add(start);
-
-        while (!queue.isEmpty()) {
-            Pixel2D curr = queue.poll();
-
-            // Check if this pixel is a pink dot (food)
-            if (_map.getPixel(curr) == 1) {
-                return backtrack(curr, parentMap, start);
-            }
-
-            for (Pixel2D neighbor : getValidNeighbors(curr, ghosts)) {
-                if (!visited.contains(neighbor)) {
-                    visited.add(neighbor);
-                    parentMap.put(neighbor, curr);
-                    queue.add(neighbor);
-                }
-            }
-        }
         return null;
     }
 
-    private List<Pixel2D> getValidNeighbors(Pixel2D p, List<Ghost> ghosts) {
-        List<Pixel2D> neighbors = new ArrayList<>();
-        int[] dx = {0, 1, 0, -1};
-        int[] dy = {1, 0, -1, 0};
+    @Override
+    /**
+     * This ia the main method - that you should design, implement and test.
+     */
+    public int move(PacmanGame game) {
+        if (_count == 0 || _count == 300) {
+            int code = 0;
+            int[][] board = game.getGame(0);
+            printBoard(board);
+            int blue = Game.getIntColor(Color.BLUE, code);
+            int pink = Game.getIntColor(Color.PINK, code);
+            int black = Game.getIntColor(Color.BLACK, code);
+            int green = Game.getIntColor(Color.GREEN, code);
+            System.out.println("Blue=" + blue + ", Pink=" + pink + ", Black=" + black + ", Green=" + green);
+            String pos = game.getPos(code);
+            System.out.println("Pacman coordinate: " + pos);
+            /// parse str to pixel
+            System.out.println(stringToPixel(pos));
+            ///
+            GhostCL[] ghosts = game.getGhosts(code);
+            printGhosts(ghosts);
+            int up = Game.UP, left = Game.LEFT, down = Game.DOWN, right = Game.RIGHT;
+        }
+        _count++;
+        //int dir = 0;
+        //packman pos
+        //Pixel2D pc= new Index2D(stringToPixel(game.getPos(0).toString()));
+        //	Pixel2D ghost= new Index2D(stringToPixel(ghosts[0]
+        GhostCL[] gh = game.getGhosts(0);
+        Pixel2D pp = stringToPixel(game.getPos(0));
+        Pixel2D[] gp = new Pixel2D[gh.length];
+        for (int i = 0; i < gh.length; i++) {
+            gp[i] = new Index2D(stringToPixel(gh[i].getPos(0)));
+        }
 
-        for (int i = 0; i < 4; i++) {
-            Pixel2D next = new Index2D(p.getX() + dx[i], p.getY() + dy[i]);
-            if (_map.isInside(next) && _map.getPixel(next) != 0) {
-                if (isLocationSafe(next, ghosts)) {
-                    neighbors.add(next);
+        Map map = new Map(game.getGame(0));
+        Map2D mapall = new Map(map.allDistance(pp, 1).getMap());
+        Pixel2D farest = new Index2D(0, 0);
+        Pixel2D nearest = map.getNearestEatable(pp, 1, new int[]{3, 5});
+
+        for (int x = 0; x < map.getWidth(); x++) {
+            for (int y = 0; y < map.getHeight(); y++) {
+                if (map.getPixel(x, y) == 3 || map.getPixel(x, y) == 5) {
+                    if (mapall.getPixel(farest) < mapall.getPixel(x, y)) {
+                        farest = new Index2D(x, y);
+                    }
+                }
+
+            }
+        }
+        Pixel2D[] sp = map.shortestPath(pp, nearest, 1);
+//        System.out.println("----------------------- shortest pixels");
+//        System.out.println(Arrays.toString(sp));
+
+//        pp = sp[sp.length - 1];
+        return toMove(map, pp, sp[1]);
+    }
+
+//}
+
+    private static void printBoard(int[][] b) {
+        for (int y = 0; y < b[0].length; y++) {
+            for (int x = 0; x < b.length; x++) {
+                int v = b[x][y];
+                System.out.print(v + "\t");
+            }
+            System.out.println();
+        }
+    }
+
+    private static void printGhosts(GhostCL[] gs) {
+        for (int i = 0; i < gs.length; i++) {
+            GhostCL g = gs[i];
+            System.out.println(i + ") status: " + g.getStatus() + ",  type: " + g.getType() + ",  pos: " + g.getPos(0) + ",  time: " + g.remainTimeAsEatable(0));
+        }
+    }
+
+    private static int randomDir() {
+        int[] dirs = {Game.UP, Game.LEFT, Game.DOWN, Game.RIGHT};
+        int ind = (int) (Math.random() * dirs.length);
+        return dirs[ind];
+    }
+
+    private static Pixel2D stringToPixel(String str) {
+        String[] arr = str.split(",");
+        int x = Integer.parseInt(arr[0]);
+        int y = Integer.parseInt(arr[1]);
+        return new Index2D(x, y);
+    }
+
+    private static int toMove(Map map, Pixel2D from, Pixel2D to) {
+
+        System.out.println("from:" + from);
+        System.out.println("to:" + to);
+
+        if (map.isCyclic()) {
+            if (from.getX() == to.getX()) {
+                if (from.getY() == map.getHeight() - 1 && to.getY() == 0) {
+                    return Game.UP;
+                }
+                if (from.getY() == 0 && to.getY() == map.getHeight() - 1) {
+                    return Game.DOWN;
+                }
+            }
+            if (from.getY() == to.getY()) {
+                if (from.getX() == map.getWidth() - 1 && to.getX() == 0) {
+                    return Game.RIGHT;
+                }
+                if (from.getX() == 0 && to.getX() == map.getWidth() - 1) {
+                    return Game.LEFT;
                 }
             }
         }
-        return neighbors;
-    }
-
-    private boolean isLocationSafe(Pixel2D p, List<Ghost> ghosts) {
-        for (Ghost g : ghosts) {
-            // Stay at least 2 steps away from any ghost
-            if (p.distance(g.getLocation()) < 2.1) return false;
+        if (to.getX() == from.getX() && to.getY() < from.getY()) {
+            return Game.DOWN;
+            //	dirs[a] = down;
         }
-        return true;
-    }
-
-    private int escapeLogic(Pixel2D current, List<Ghost> ghosts) {
-        // Simple logic to move to the first valid neighbor if trapped
-        for (int i = 0; i < 4; i++) {
-            int[] dx = {0, 1, 0, -1};
-            int[] dy = {1, 0, -1, 0};
-            Pixel2D next = new Index2D(current.getX() + dx[i], current.getY() + dy[i]);
-            if (_map.isInside(next) && _map.getPixel(next) != 0) return i;
+        if (to.getX() == from.getX() && to.getY() > from.getY()) {
+            return Game.UP;
+            //	dirs[a] = up;
         }
-        return -1;
-    }
-
-    private Pixel2D backtrack(Pixel2D target, Map<Pixel2D, Pixel2D> parentMap, Pixel2D start) {
-        Pixel2D curr = target;
-        while (parentMap.get(curr) != null && !parentMap.get(curr).equals(start)) {
-            curr = parentMap.get(curr);
+        if (to.getX() < from.getX() && to.getY() == from.getY()) {
+            return Game.LEFT;
+            //dirs[a] = right;
         }
-        return curr;
-    }
-
-    private int calculateDirection(Pixel2D from, Pixel2D to) {
-        if (to.getY() > from.getY()) return 0; // UP
-        if (to.getX() > from.getX()) return 1; // RIGHT
-        if (to.getY() < from.getY()) return 2; // DOWN
-        if (to.getX() < from.getX()) return 3; // LEFT
-        return -1;
+        if (to.getX() > from.getX() && to.getY() == from.getY()) {
+            return Game.RIGHT;
+            //dirs[a] = left;
+        }
+        return Game.PAUSE;
     }
 }
