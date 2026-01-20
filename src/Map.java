@@ -63,12 +63,12 @@ public class Map implements Map2D {
         if (arr.length == 0) {
             throw new RuntimeException("arr is empty");
         }
-        for (int i = 0; i < arr.length - 1; i++) {
+        for (int i = 0; i < arr.length - 1; i++) { // check for ragged array
             if (arr[i + 1].length != arr[i].length) {
                 throw new RuntimeException("arr is a ragged array");
             }
         }
-        for (int i = 0; i < arr.length; i++) {
+        for (int i = 0; i < arr.length; i++) { // check for empty rows
             if (arr[i].length == 0) {
                 throw new RuntimeException("arr is empty");
             }
@@ -96,7 +96,7 @@ public class Map implements Map2D {
         int w = this._map.length;
         int h = this._map[0].length;
         ans = new int[w][h];
-        for (int i = 0; i < w; i++) {
+        for (int i = 0; i < w; i++) { //copying the map
             for (int j = 0; j < h; j++) {
                 ans[i][j] = this._map[i][j];
             }
@@ -157,7 +157,7 @@ public class Map implements Map2D {
         /////// add your code below ///////
         Map2D map = new Map(this._map);
         int pColor = this.getPixel(xy);
-        for (int i = 0; i < map.getWidth(); i++) {
+        for (int i = 0; i < map.getWidth(); i++) { // set all pixels that are not pColor to -1
             for (int j = 0; j < map.getHeight(); j++) {
                 if (map.getPixel(i, j) != pColor) {
                     map.setPixel(i, j, -1);
@@ -165,7 +165,7 @@ public class Map implements Map2D {
             }
         }
         map = map.allDistance(xy, -1);
-        for (int i = 0; i < map.getWidth(); i++) {
+        for (int i = 0; i < map.getWidth(); i++) { // count all pixels that are >=0 and set them to new_v
             for (int j = 0; j < map.getHeight(); j++) {
                 if (map.getPixel(i, j) >= 0) {
                     ans++;
@@ -188,10 +188,10 @@ public class Map implements Map2D {
         /////// add your code below ///////
         Map2D mapSorted = this.allDistance(p1, obsColor);
         int target = mapSorted.getPixel(p2);
-        if ((target == -1) || (target == -2)) {
+        if ((target == -1) || (target == -2)) { // no path found
             return null;
         }
-        ///אם היעד הוא נקודת ההתחלה?? אולי לא הכרחי
+        // special case: p1 == p2
         if (target == 0) {
             ans = new Pixel2D[1];
             ans[0] = p2;
@@ -204,9 +204,10 @@ public class Map implements Map2D {
         Queue<Pixel2D> sp = new LinkedList<>();
         sp.add(p2);
         ans[target] = p2;
-        while (!sp.isEmpty()) {
+        while (!sp.isEmpty()) { // BFS
             Pixel2D temp = sp.remove();
-            if (temp.equals(p1)) break;
+            if (temp.equals(p1))
+                break;
             // left
             int x_l = (temp.getX() - 1 + w) % w;
             int y_l = (temp.getY() + h) % h;
@@ -227,23 +228,23 @@ public class Map implements Map2D {
             int y_u = (temp.getY() + 1 + h) % h;
             Pixel2D up = new Index2D(x_u, y_u);
 
-            if ((this.isCyclic() || isInside(left)) && mapSorted.getPixel(left) == mapSorted.getPixel(temp) - 1) {
+            if ((this.isCyclic() || isInside(left)) && mapSorted.getPixel(left) == mapSorted.getPixel(temp) - 1) { // check left neighbor
                 sp.add(left);
                 ans[mapSorted.getPixel(temp) - 1] = left;
                 continue;
             }
             // if ((this.isCyclic() || checkIndex(temp.getX() + 1, temp.getY())) && mapSorted.getPixel(temp.getX() + 1, temp.getY()) == mapSorted.getPixel(temp) - 1) {
-            if ((this.isCyclic() || isInside(right)) && mapSorted.getPixel(right) == mapSorted.getPixel(temp) - 1) {
+            if ((this.isCyclic() || isInside(right)) && mapSorted.getPixel(right) == mapSorted.getPixel(temp) - 1) { // check right neighbor
                 sp.add(right);
                 ans[mapSorted.getPixel(temp) - 1] = right;
                 continue;
             }
-            if ((this.isCyclic() || isInside(down)) && mapSorted.getPixel(down) == mapSorted.getPixel(temp) - 1) {
+            if ((this.isCyclic() || isInside(down)) && mapSorted.getPixel(down) == mapSorted.getPixel(temp) - 1) { // check down neighbor
                 sp.add(down);
                 ans[mapSorted.getPixel(temp) - 1] = down;
                 continue;
             }
-            if ((this.isCyclic() || isInside(up)) && mapSorted.getPixel(up) == mapSorted.getPixel(temp) - 1) {
+            if ((this.isCyclic() || isInside(up)) && mapSorted.getPixel(up) == mapSorted.getPixel(temp) - 1) { // check up neighbor
                 sp.add(up);
                 ans[mapSorted.getPixel(temp) - 1] = up;
             }
@@ -272,12 +273,12 @@ public class Map implements Map2D {
     }
     @Override
     /////// add your code below ///////
-    public Map2D allDistance(Pixel2D start, int obsColor) {
+    public Map2D allDistance(Pixel2D start, int obsColor) { // BFS like shortest path computation based on iterative raster implementation of BFS
         Map2D ans = null;  // the result.
         /////// add your code below ///////
         Map2D mapCopy = new Map(this._map);
         int curColor = getPixel(start);
-        for (int i = 0; i < mapCopy.getWidth(); i++) {
+        for (int i = 0; i < mapCopy.getWidth(); i++) { // set all pixels that are obsColor to -1 and all others to -2
             for (int j = 0; j < mapCopy.getHeight(); j++) {
                 if (this._map[i][j] == obsColor) {
                     mapCopy.setPixel(i, j, -1);
@@ -290,7 +291,7 @@ public class Map implements Map2D {
         neighbors.add(start);
         mapCopy.setPixel(start, 0);
 
-        while (!neighbors.isEmpty()) {
+        while (!neighbors.isEmpty()) { // main BFS loop which sets distances from start to all reachable pixels
             Pixel2D temp = neighbors.remove();
 
             Pixel2D left = new Index2D(temp.getX() - 1, temp.getY());
@@ -298,19 +299,19 @@ public class Map implements Map2D {
             Pixel2D down = new Index2D(temp.getX(), temp.getY() - 1);
             Pixel2D up = new Index2D(temp.getX(), temp.getY() + 1);
 
-            if ((this.isCyclic() || isInside(left)) && mapCopy.getPixel(left) == -2) {
+            if ((this.isCyclic() || isInside(left)) && mapCopy.getPixel(left) == -2) { // check left neighbor
                 neighbors.add(left);
                 mapCopy.setPixel(left, mapCopy.getPixel(temp) + 1);
             }
-            if ((this.isCyclic() || isInside(right)) && mapCopy.getPixel(right) == -2) {
+            if ((this.isCyclic() || isInside(right)) && mapCopy.getPixel(right) == -2) { // check right neighbor
                 neighbors.add(right);
                 mapCopy.setPixel(right, mapCopy.getPixel(temp) + 1);
             }
-            if ((this.isCyclic() || isInside(down)) && mapCopy.getPixel(down) == -2) {
+            if ((this.isCyclic() || isInside(down)) && mapCopy.getPixel(down) == -2) { // check down neighbor
                 neighbors.add(down);
                 mapCopy.setPixel(down, mapCopy.getPixel(temp) + 1);
             }
-            if ((this.isCyclic() || isInside(up)) && mapCopy.getPixel(up) == -2) {
+            if ((this.isCyclic() || isInside(up)) && mapCopy.getPixel(up) == -2) { // check up neighbor
                 neighbors.add(up);
                 mapCopy.setPixel(up, mapCopy.getPixel(temp) + 1);
             }
@@ -323,7 +324,7 @@ public class Map implements Map2D {
     boolean checkIndex(int x, int y) {
         return x >= 0 && x < _map.length && y >= 0 && y < _map[0].length;
     }
-    public Pixel2D getNearestEatable(Pixel2D pacmanPosition, int obsColor, int[] eatables) {
+    public Pixel2D getNearestEatable(Pixel2D pacmanPosition, int obsColor, int[] eatables) { // BFS like nearest eatable computation
         Queue<Pixel2D> sp = new LinkedList<>();
         boolean[][] visited = new boolean[getWidth()][getHeight()];
         sp.add(pacmanPosition);
@@ -354,29 +355,29 @@ public class Map implements Map2D {
             int y_u = (temp.getY() + 1 + h) % h;
             Pixel2D up = new Index2D(x_u, y_u);
 
-            if ((this.isCyclic() || isInside(right)) && (getPixel(right) == eatables[0] || getPixel(right) == eatables[1])) {
+            if ((this.isCyclic() || isInside(right)) && (getPixel(right) == eatables[0] || getPixel(right) == eatables[1])) { // check right neighbor if eatable
                 return right;
             }
-            if ((this.isCyclic() || isInside(left)) && (getPixel(left) == eatables[0] || getPixel(left) == eatables[1])) {
+            if ((this.isCyclic() || isInside(left)) && (getPixel(left) == eatables[0] || getPixel(left) == eatables[1])) { // check left neighbor if eatable
                 return left;
             }
-            if ((this.isCyclic() || isInside(up)) && (getPixel(up) == eatables[0] || getPixel(up) == eatables[1])) {
+            if ((this.isCyclic() || isInside(up)) && (getPixel(up) == eatables[0] || getPixel(up) == eatables[1])) { // check up neighbor if eatable
                 return up;
             }
-            if ((this.isCyclic() || isInside(down)) && (getPixel(down) == eatables[0] || getPixel(down) == eatables[1])) {
+            if ((this.isCyclic() || isInside(down)) && (getPixel(down) == eatables[0] || getPixel(down) == eatables[1])) { // check down neighbor if eatable
                 return down;
             }
 
-            if (getPixel(right) != obsColor) {
+            if (getPixel(right) != obsColor) { // add neighbors to queue if not obstacle
                 sp.add(right);
             }
-            if (getPixel(left) != obsColor) {
+            if (getPixel(left) != obsColor) { // add neighbors to queue if not obstacle
                 sp.add(left);
             }
-            if (getPixel(up) != obsColor) {
+            if (getPixel(up) != obsColor) { // add neighbors to queue if not obstacle
                 sp.add(up);
             }
-            if (getPixel(down) != obsColor) {
+            if (getPixel(down) != obsColor) { // add neighbors to queue if not obstacle
                 sp.add(down);
             }
         }
