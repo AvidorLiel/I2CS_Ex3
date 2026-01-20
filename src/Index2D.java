@@ -1,7 +1,7 @@
 public class Index2D implements Pixel2D
 {
-    private int X;
-    private int Y;
+    private final int X;
+    private final int Y;
 
     public Index2D(int w, int h)
     {
@@ -11,8 +11,7 @@ public class Index2D implements Pixel2D
     public Index2D(Pixel2D other)
     {
         this.X = other.getX();
-        this.Y = other.getY()
-        ;
+        this.Y = other.getY();
     }
     @Override
     public int getX()
@@ -27,7 +26,7 @@ public class Index2D implements Pixel2D
     }
 
     @Override
-    public double distance2D(Pixel2D p2) ///
+    public double distance2D(Pixel2D p2)
     {
         if (p2 == null)
         {
@@ -42,29 +41,20 @@ public class Index2D implements Pixel2D
     @Override
     public String toString() {
 
-        return "(" + this.X + "," + this.Y + ")";
+        // NOTE (English): Return coordinates in the exact format expected by
+        // other parts of the project (for example, Ex3Algo.stringToPixel)
+        // which parse a string in the form "x,y". Previously this method
+        // returned "(x,y)", causing Integer.parseInt to fail when the
+        // surrounding parentheses were present. Returning "x,y" ensures
+        // consistent, parse-friendly output.
+        return this.X + "," + this.Y;
     }
 
     @Override
     public boolean equals(Object p) {
 
-        if (p == null)
-        {
-
-            return false;
-        }
-        if(!(p instanceof Pixel2D))
-        {
-            return false;
-        }
-        Pixel2D p1 = (Pixel2D)p;
-        boolean ans = false;
-        if(this.X==p1.getX() && this.Y==p1.getY())
-        {
-            ans=true;
-        }
-
-        return ans;
+        if (!(p instanceof Pixel2D p1)) return false;
+        return this.X == p1.getX() && this.Y == p1.getY();
     }
 
 
